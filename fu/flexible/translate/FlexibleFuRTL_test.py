@@ -20,6 +20,7 @@ from ....lib.messages               import *
 from ...single.AdderRTL             import AdderRTL
 from ...single.MulRTL               import MulRTL
 from ...single.ShifterRTL           import ShifterRTL
+from ...single.SelRTL               import SelRTL
 from ...single.LogicRTL             import LogicRTL
 from ...single.PhiRTL               import PhiRTL
 from ...single.MemUnitRTL           import MemUnitRTL
@@ -103,12 +104,12 @@ import pytest
                     reason="requires linux (gcc)")
 def test_flexible_mul():
   FU = FlexibleFuRTL
-  FuList = [AdderRTL, MulRTL]
-  DataType = mk_data( 16, 1 )
-  CtrlType = mk_ctrl()
+  FuList = [AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL, SelRTL]
+  DataType = mk_data( 32, 1 )
   data_mem_size = 8
-  num_inports   = 2
+  num_inports   = 4
   num_outports  = 2
+  CtrlType = mk_ctrl(num_inports)
   FuInType = mk_bits( clog2( num_inports + 1 ) )
   pickRegister = [ FuInType( x+1 ) for x in range( num_inports ) ]
   src_in0  = [ DataType(1, 1), DataType(2, 1), DataType(9, 1) ]

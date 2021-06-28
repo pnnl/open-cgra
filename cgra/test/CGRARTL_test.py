@@ -171,6 +171,6 @@ def test_hetero_2x2():
                     width, height, ctrl_mem_size, data_mem_size,
                     src_opt, ctrl_waddr )
   th.set_param("top.dut.tile[1].construct", FuList=[ShifterRTL])
-  #th.set_param("top.dut.tile[1].construct", FuList=[MemUnit,Shifter])
+  #th.set_param("top.dut.tile[1].construct", FuList=[MemUnitRTL,ShifterRTL])
   run_sim( th )
 

@@ -24,13 +24,15 @@ class SeqMulAdderRTL( TwoSeqCombo ):
     super( SeqMulAdderRTL, s ).construct( DataType, CtrlType, MulRTL, AdderRTL,
            num_inports, num_outports, data_mem_size )
 
+    FuInType = mk_bits( clog2( num_inports + 1 ) )
+
     @s.update
     def update_opt():
 
-      s.Fu0.recv_opt.msg.fu_in[0] = Bits2(1)
-      s.Fu0.recv_opt.msg.fu_in[1] = Bits2(2)
-      s.Fu1.recv_opt.msg.fu_in[0] = Bits2(1)
-      s.Fu1.recv_opt.msg.fu_in[1] = Bits2(2)
+      s.Fu0.recv_opt.msg.fu_in[0] = FuInType(1)
+      s.Fu0.recv_opt.msg.fu_in[1] = FuInType(2)
+      s.Fu1.recv_opt.msg.fu_in[0] = FuInType(1)
+      s.Fu1.recv_opt.msg.fu_in[1] = FuInType(2)
 
       if s.recv_opt.msg.ctrl == OPT_MUL_ADD:
         s.Fu0.recv_opt.msg.ctrl = OPT_MUL

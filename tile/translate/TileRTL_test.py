@@ -21,6 +21,7 @@ from ...fu.flexible.FlexibleFuRTL         import FlexibleFuRTL
 from ...fu.single.AdderRTL                import AdderRTL
 from ...fu.single.MemUnitRTL              import MemUnitRTL
 from ...fu.single.MulRTL                  import MulRTL
+from ...fu.single.SelRTL                  import SelRTL
 from ...fu.single.ShifterRTL              import ShifterRTL
 from ...fu.single.LogicRTL                import LogicRTL
 from ...fu.single.PhiRTL                  import PhiRTL
@@ -126,9 +127,7 @@ def test_tile_alu():
   AddrType     = mk_bits( clog2( ctrl_mem_size ) )
   DUT          = TileRTL
   FunctionUnit = FlexibleFuRTL
-#  FuList      = [ AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL, ThreeMulAdderShifterRTL ]
-  FuList       = [AdderRTL]
-#  FuList      = [ThreeMulAdderShifterRTL]
+  FuList       = [ AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL, SelRTL ]
   DataType     = mk_data( 32, 1 )
   CtrlType     = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
   FuInType     = mk_bits( clog2( num_fu_in + 1 ) )

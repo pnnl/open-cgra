@@ -35,8 +35,8 @@ class TwoSeqCombo( Component ):
     s.to_mem_wdata   = SendIfcRTL( DataType )
 
     # Components
-    s.Fu0 = Fu0( DataType, CtrlType, 2, 1, data_mem_size )
-    s.Fu1 = Fu1( DataType, CtrlType, 2, 1, data_mem_size )
+    s.Fu0 = Fu0( DataType, CtrlType, 4, 2, data_mem_size )
+    s.Fu1 = Fu1( DataType, CtrlType, 4, 2, data_mem_size )
 
     # Connections
     s.recv_in[0].msg     //= s.Fu0.recv_in[0].msg
