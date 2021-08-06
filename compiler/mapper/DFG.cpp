@@ -316,8 +316,8 @@ void DFG::construct(Function& t_F) {
       continue;
 //    DFGNode* dfgNodeTerm = new DFGNode(nodeID++, terminator, getValueName(terminator));
     for (BasicBlock* sucBB : successors(curBB)) {
-      for (BasicBlock::iterator II=curBB->begin(),
-          IEnd=curBB->end(); II!=IEnd; ++II) {
+      for (BasicBlock::iterator II=sucBB->begin(),
+          IEnd=sucBB->end(); II!=IEnd; ++II) {
         Instruction* inst = &*II;
 //      for (Instruction* inst: sucBB) {
         // Ignore this IR if it is out of the scope.

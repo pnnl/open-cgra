@@ -85,7 +85,7 @@ void CGRANode::allocateReg(int t_port_id, int t_cycle, int t_duration, int t_II)
       break;
     }
   }
-  assert(allocated);
+//  assert(allocated);
 }
 
 int* CGRANode::getRegsAllocation(int t_cycle) {
