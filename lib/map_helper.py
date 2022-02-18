@@ -17,7 +17,9 @@ from ..fu.single.MulRTL     import MulRTL
 from ..fu.single.MemUnitRTL import MemUnitRTL
 from ..fu.single.CompRTL    import CompRTL
 from ..fu.single.PhiRTL     import PhiRTL
+from ..fu.single.RetRTL     import RetRTL
 from ..fu.single.BranchRTL  import BranchRTL
+from ..fu.single.SelRTL     import SelRTL
 
 # -----------------------------------------------------------------------
 # Global dictionary for UnitType and OptType
@@ -28,8 +30,10 @@ unit_map = { "Adder"           : AdderRTL,
              "Phi"             : PhiRTL,
              "Comp"            : CompRTL,
              "Branch"          : BranchRTL,
+             "Ret"             : RetRTL,
              "Logic"           : LogicRTL,
              "Shifter"         : ShifterRTL,
+             "Selecter"        : SelRTL,
              "MemUnit"         : MemUnitRTL }
 
 opt_map  = { "OPT_START"       : OPT_START,
@@ -50,7 +54,9 @@ opt_map  = { "OPT_START"       : OPT_START,
              "OPT_EQ"          : OPT_EQ,
              "OPT_EQ_CONST"    : OPT_EQ_CONST,
              "OPT_LE"          : OPT_LE,
+             "OPT_RET"         : OPT_RET,
              "OPT_BRH"         : OPT_BRH,
+             "OPT_BRH_START"   : OPT_BRH_START,
              "OPT_PHI"         : OPT_PHI,
              "OPT_PHI_CONST"   : OPT_PHI_CONST,
              "OPT_MUL_ADD"     : OPT_MUL_ADD,

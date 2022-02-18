@@ -16,14 +16,17 @@ from ..basic.Fu         import Fu
 
 class CompRTL( Fu ):
 
-  def construct( s, DataType, ConfigType, num_inports, num_outports,
-                 data_mem_size ):
+  def construct( s, DataType, PredicateType, CtrlType,
+                 num_inports, num_outports, data_mem_size ):
 
-    super( CompRTL, s ).construct( DataType, ConfigType, num_inports, num_outports,
-           data_mem_size )
+    super( CompRTL, s ).construct( DataType, PredicateType, CtrlType,
+                                   num_inports, num_outports,
+                                   data_mem_size )
 
     s.const_one  = DataType(1, 0)
-    FuInType = mk_bits( clog2( num_inports + 1 ) )
+    FuInType     = mk_bits( clog2( num_inports + 1 ) )
+    num_entries  = 2
+    CountType    = mk_bits( clog2( num_entries + 1 ) )
 
     # data:      s.recv_in[0]
     # reference: s.recv_in[1] (or recv_const)
@@ -43,6 +46,8 @@ class CompRTL( Fu ):
         if s.recv_opt.msg.fu_in[1] != FuInType( 0 ):
           in1 = s.recv_opt.msg.fu_in[1] - FuInType( 1 )
           s.recv_in[in1].rdy = b1( 1 )
+        if s.recv_opt.msg.predicate == b1( 1 ):
+          s.recv_predicate.rdy = b1( 1 )
 
       predicate = s.recv_in[in0].msg.predicate & s.recv_in[in1].msg.predicate
       s.send_out[0].msg = s.const_one
@@ -51,30 +56,42 @@ class CompRTL( Fu ):
         s.send_out[j].en = s.recv_opt.en
 
       if s.recv_opt.msg.ctrl == OPT_EQ:
-        if s.recv_in[0].msg.payload == s.recv_in[in1].msg.payload:
+        if s.recv_in[in0].msg.payload == s.recv_in[in1].msg.payload:
           s.send_out[0].msg = s.const_one
           s.send_out[0].msg.predicate = predicate
         else:
           s.send_out[0].msg = s.const_zero
           s.send_out[0].msg.predicate = predicate
+        if s.recv_opt.en and ( s.recv_in_count[in0] == CountType( 0 ) or\
+                               s.recv_in_count[in1] == CountType( 0 ) ):
+          s.recv_in[in0].rdy = b1( 0 )
+          s.recv_in[in1].rdy = b1( 0 )
+          s.send_out[0].msg.predicate = b1( 0 )
 
       elif s.recv_opt.msg.ctrl == OPT_EQ_CONST:
-        if s.recv_in[0].msg.payload == s.recv_const.msg.payload:
+        if s.recv_in[in0].msg.payload == s.recv_const.msg.payload:
           s.send_out[0].msg = s.const_one
-          s.send_out[0].msg.predicate = predicate
+          s.send_out[0].msg.predicate = b1( 1 )
         else:
           s.send_out[0].msg = s.const_zero
-          s.send_out[0].msg.predicate = predicate
+          s.send_out[0].msg.predicate = b1( 1 )
 
       elif s.recv_opt.msg.ctrl == OPT_LE:
-        if s.recv_in[0].msg.payload < s.recv_in[in1].msg.payload:
+        if s.recv_in[in0].msg.payload < s.recv_in[in1].msg.payload:
           s.send_out[0].msg = s.const_one
           s.send_out[0].msg.predicate = predicate
         else:
           s.send_out[0].msg = s.const_zero
           s.send_out[0].msg.predicate = predicate
+        if s.recv_opt.en and ( s.recv_in_count[in0] == CountType( 0 ) or\
+                               s.recv_in_count[in1] == CountType( 0 ) ):
+          s.recv_in[in0].rdy = b1( 0 )
+          s.recv_in[in1].rdy = b1( 0 )
 
       else:
         for j in range( num_outports ):
           s.send_out[j].en = b1( 0 )
 
+      if s.recv_opt.msg.predicate == b1( 1 ):
+        s.send_out[0].msg.predicate = s.send_out[0].msg.predicate and\
+                                      s.recv_predicate.msg.predicate

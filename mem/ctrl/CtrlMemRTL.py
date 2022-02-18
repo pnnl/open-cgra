@@ -25,18 +25,15 @@ class CtrlMemRTL( Component ):
     last_item = AddrType( ctrl_mem_size - 1 )
 
     # Interface
-
     s.send_ctrl  = SendIfcRTL( CtrlType )
     s.recv_waddr = RecvIfcRTL( AddrType )
     s.recv_ctrl  = RecvIfcRTL( CtrlType )
 
     # Component
-
     s.reg_file   = RegisterFile( CtrlType, ctrl_mem_size, 1, 1 )
     s.times = Wire( TimeType )
 
     # Connections
-
     s.send_ctrl.msg //= s.reg_file.rdata[0]
     s.reg_file.waddr[0] //= s.recv_waddr.msg
     s.reg_file.wdata[0] //= s.recv_ctrl.msg

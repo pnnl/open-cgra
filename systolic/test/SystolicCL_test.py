@@ -31,8 +31,8 @@ import os
 
 class TestHarness( Component ):
 
-  def construct( s, DUT, FunctionUnit, FuList, DataType, CtrlType,
-                 width, height, ctrl_mem_size, data_mem_size,
+  def construct( s, DUT, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, width, height, ctrl_mem_size, data_mem_size,
                  src_opt, preload_data, preload_const, sink_out ):
 
     s.num_tiles = width * height
@@ -41,9 +41,9 @@ class TestHarness( Component ):
     s.sink_out  = [ TestSinkCL( DataType, sink_out[i] )
                   for i in range( height-1 ) ]
 
-    s.dut = DUT( FunctionUnit, FuList, DataType, CtrlType, width, height,
-                 ctrl_mem_size, data_mem_size, ctrl_mem_size, src_opt,
-                 preload_data, preload_const )
+    s.dut = DUT( FunctionUnit, FuList, DataType, PredicateType, CtrlType,
+                 width, height, ctrl_mem_size, data_mem_size, ctrl_mem_size,
+                 src_opt, preload_data, preload_const )
 
     for i in range( height-1 ):
       connect( s.dut.send_data[i],  s.sink_out[i].recv )
@@ -100,91 +100,92 @@ def test_systolic_2x2():
   FunctionUnit      = FlexibleFuRTL
   FuList            = [AdderRTL, MemUnitRTL, SeqMulAdderRTL]
   DataType          = mk_data( 16, 1 )
+  PredicateType     = mk_predicate( 1, 1 )
   CtrlType          = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
   FuInType          = mk_bits( clog2( num_fu_in + 1 ) )
   pickRegister      = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
   
-  src_opt       = [[CtrlType( OPT_LD_CONST, pickRegister, [ 
+  src_opt       = [[CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [ 
                     RouteType(5), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
                     RouteType(5), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
                     RouteType(5), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
-                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
-                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                   ],
-                   [CtrlType( OPT_NAH, pickRegister, [ 
-                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
-                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [ 
-                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
-                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
-                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
-                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
-                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
-                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_LD_CONST, pickRegister, [
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
                     RouteType(5), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
                    ],
-                   [CtrlType( OPT_NAH, pickRegister, [ 
+                   [CtrlType( OPT_NAH, b1( 0 ), pickRegister, [ 
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [ 
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_LD_CONST, b1( 0 ), pickRegister, [
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ),
+                   ],
+                   [CtrlType( OPT_NAH, b1( 0 ), pickRegister, [ 
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST, pickRegister, [
+                    CtrlType( OPT_MUL_CONST, b1( 0 ), pickRegister, [
                     RouteType(2), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST, pickRegister, [
+                    CtrlType( OPT_MUL_CONST, b1( 0 ), pickRegister, [
                     RouteType(2), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST, pickRegister, [
+                    CtrlType( OPT_MUL_CONST, b1( 0 ), pickRegister, [
                     RouteType(2), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
                    ],
-                   [CtrlType( OPT_NAH, pickRegister, [ 
+                   [CtrlType( OPT_NAH, b1( 0 ), pickRegister, [ 
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_NAH, pickRegister, [ 
+                    CtrlType( OPT_NAH, b1( 0 ), pickRegister, [ 
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST_ADD, pickRegister, [ 
+                    CtrlType( OPT_MUL_CONST_ADD, b1( 0 ), pickRegister, [ 
                     RouteType(2), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST_ADD, pickRegister, [
+                    CtrlType( OPT_MUL_CONST_ADD, b1( 0 ), pickRegister, [
                     RouteType(2), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
                    ],
-                   [CtrlType( OPT_NAH, pickRegister, [
+                   [CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_NAH, pickRegister, [
+                    CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST, pickRegister, [
+                    CtrlType( OPT_MUL_CONST, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST, pickRegister, [
+                    CtrlType( OPT_MUL_CONST, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(0), RouteType(0)] ),
                    ],
-                   [CtrlType( OPT_NAH, pickRegister, [
+                   [CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_NAH, pickRegister, [
+                    CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_NAH, pickRegister, [
+                    CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(0),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST_ADD, pickRegister, [
+                    CtrlType( OPT_MUL_CONST_ADD, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
-                    CtrlType( OPT_MUL_CONST_ADD, pickRegister, [
+                    CtrlType( OPT_MUL_CONST_ADD, b1( 0 ), pickRegister, [
                     RouteType(0), RouteType(0), RouteType(0), RouteType(5),
                     RouteType(2), RouteType(0), RouteType(3), RouteType(0)] ),
                    ]
@@ -200,8 +201,8 @@ def test_systolic_2x2():
   2 4      4 8     30 44
   """
   sink_out = [[DataType(14, 1), DataType(20, 1)], [DataType(30, 1), DataType(44, 1)]]
-  th = TestHarness( DUT, FunctionUnit, FuList, DataType, CtrlType,
-                    width, height, ctrl_mem_size, len(preload_mem),
+  th = TestHarness( DUT, FunctionUnit, FuList, DataType, PredicateType,
+                    CtrlType, width, height, ctrl_mem_size, len(preload_mem),
                     src_opt, preload_mem, preload_const, sink_out )
   run_sim( th )
 

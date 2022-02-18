@@ -19,11 +19,14 @@ from ..single.ShifterRTL   import ShifterRTL
 
 class ThreeMulAdderShifterRTL( ThreeCombo ):
 
-  def construct( s, DataType, CtrlType, num_inports, num_outports,
-                 data_mem_size ):
+  def construct( s, DataType, PredicateType, CtrlType,
+                 num_inports, num_outports, data_mem_size ):
 
-    super( ThreeMulAdderShifterRTL, s ).construct( DataType, CtrlType,
-           MulRTL, AdderRTL, ShifterRTL, num_inports, num_outports, data_mem_size )
+    super( ThreeMulAdderShifterRTL, s ).construct( DataType, PredicateType,
+                                                   CtrlType, MulRTL,
+                                                   AdderRTL, ShifterRTL,
+                                                   num_inports, num_outports,
+                                                   data_mem_size )
 
     @s.update
     def update_opt():

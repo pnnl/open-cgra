@@ -20,7 +20,7 @@ class ConstQueueRTL( Component ):
 
     # Constant
     num_const = len( const_list )
-    AddrType = mk_bits( clog2( num_const ) )
+    AddrType = mk_bits( clog2( num_const+1 ) )
     TimeType = mk_bits( clog2( num_const+1 ) )
 
     # Interface
@@ -45,7 +45,7 @@ class ConstQueueRTL( Component ):
     @s.update_ff
     def update_raddr():
       if s.send_const.rdy:
-        if s.cur + AddrType( 1 )  == AddrType( num_const ):
+        if s.cur + AddrType( 1 )  >= AddrType( num_const ):
           s.cur <<= AddrType( 0 )
         else:
           s.cur <<= s.cur + AddrType( 1 )

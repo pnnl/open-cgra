@@ -18,7 +18,8 @@ import json
 
 class TileCtrl:
 
-  def __init__( s, FuType, CtrlType, RouteType, x, y, num_fu_in, num_outports, II ):
+  def __init__( s, FuType, CtrlType, RouteType, x, y, num_fu_in,
+                num_inports, num_outports, II ):
     s.FuType = FuType
     s.CtrlType = CtrlType
     s.RouteType = RouteType
@@ -31,7 +32,9 @@ class TileCtrl:
     pickRegister = [ FuInType( 0 ) for x in range( num_fu_in ) ]
 #    pickRegister[2] = FuInType( 0 )
 #    pickRegister[3] = FuInType( 0 )
-    s.ctrl   = [ CtrlType( OPT_NAH, pickRegister, [ RouteType( 0 ) ] * num_outports ) ] * II
+    s.ctrl   = [ CtrlType( OPT_NAH, b1( 0 ), pickRegister,
+                           [ RouteType( 0 ) ] * num_outports,
+                           [ b1( 0 ) ] * num_inports ) ] * II
 
   def update_ctrl( s, cycle, ctrl ):
 #    s.opts[cycle]   = opt
@@ -50,13 +53,14 @@ def get_tile( x, y, tiles ):
 class CGRACtrl:
 
   def __init__( s, json_file_name, CtrlType, RouteType, width, height,
-                num_fu_in, num_outports, II ):
+                num_fu_in, num_inports, num_outports, II ):
     s.tiles = []
     # X is the horizontal axis while Y is the vertical axis
     for y in range( height ):
       for x in range( width ):
         s.tiles.append( TileCtrl( FlexibleFuRTL, CtrlType, RouteType,
-                                  x, y, num_fu_in, num_outports, II ) )
+                                  x, y, num_fu_in, num_inports, num_outports,
+                                  II ) )
 
     FuInType     = mk_bits( clog2( num_fu_in + 1 ) )
     pickRegister = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
@@ -89,7 +93,17 @@ class CGRACtrl:
             fu_in = ctrl['fu_in_'+str(i)]
             reg[i] = FuInType( fu_in )
 
-        tile.update_ctrl( ctrl['cycle']%II, CtrlType( opt_map[ ctrl['opt'] ], reg, route ) )
+        predicate_in = []
+        if 'predicate_in' in ctrl:
+          for i in range( num_inports ):
+            if i in ctrl['predicate_in']:
+              predicate_in.append( b1( 1 ) )
+            else:
+              predicate_in.append( b1( 0 ) )
+
+        tile.update_ctrl( ctrl['cycle']%II, CtrlType( opt_map[ ctrl['opt'] ],
+                                                      ctrl['predicate'], reg,
+                                                      route, predicate_in ) )
 #          print( tile.ctrl )
 
   def get_ctrl( s ):

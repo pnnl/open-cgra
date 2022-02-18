@@ -17,8 +17,8 @@ from ..mem.data.DataMemCL import DataMemCL
 
 class CGRACL( Component ):
 
-  def construct( s, FunctionUnit, FuList, DataType, CtrlType,
-                 width, height, ctrl_mem_size, data_mem_size,
+  def construct( s, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, width, height, ctrl_mem_size, data_mem_size,
                  num_ctrl, preload_ctrl, preload_data, preload_const ):
 
     # Constant
@@ -32,10 +32,10 @@ class CGRACL( Component ):
 
     # Components
 
-    s.tile = [ TileCL( FunctionUnit, FuList, DataType, CtrlType,
-               ctrl_mem_size, data_mem_size, num_ctrl,
-               preload_const[i], preload_ctrl[i] )
-               for i in range( s.num_tiles ) ]
+    s.tile = [ TileCL( FunctionUnit, FuList, DataType, PredicateType,
+                       CtrlType, ctrl_mem_size, data_mem_size,
+                       num_ctrl, preload_const[i], preload_ctrl[i], i )
+                       for i in range( s.num_tiles ) ]
     s.data_mem = DataMemCL( DataType, data_mem_size, height, height,
                             preload_data )
 

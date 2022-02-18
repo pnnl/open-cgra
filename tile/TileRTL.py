@@ -11,6 +11,7 @@ from pymtl3                      import *
 from pymtl3.stdlib.ifcs          import SendIfcRTL, RecvIfcRTL
 from ..noc.CrossbarRTL           import CrossbarRTL
 from ..noc.ChannelRTL            import ChannelRTL
+from ..rf.RegisterRTL            import RegisterRTL
 from ..mem.ctrl.CtrlMemRTL       import CtrlMemRTL
 from ..fu.flexible.FlexibleFuRTL import FlexibleFuRTL
 from ..fu.single.MemUnitRTL      import MemUnitRTL
@@ -18,8 +19,8 @@ from ..fu.single.AdderRTL        import AdderRTL
 
 class TileRTL( Component ):
 
-  def construct( s, DataType, CtrlType, ctrl_mem_size,
-                 data_mem_size, num_ctrl,
+  def construct( s, DataType, PredicateType, CtrlType,
+                 ctrl_mem_size, data_mem_size, num_ctrl,
                  num_fu_inports, num_fu_outports,
                  num_connect_inports, num_connect_outports,
                  Fu=FlexibleFuRTL, FuList=[MemUnitRTL,AdderRTL] ):
@@ -32,8 +33,8 @@ class TileRTL( Component ):
     DataAddrType = mk_bits( clog2( data_mem_size ) )
 
     # Interfaces
-    s.recv_data    = [ RecvIfcRTL( DataType ) for _ in range ( num_connect_inports ) ]
-    s.send_data    = [ SendIfcRTL( DataType ) for _ in range ( num_connect_outports ) ]
+    s.recv_data = [ RecvIfcRTL( DataType ) for _ in range ( num_connect_inports ) ]
+    s.send_data = [ SendIfcRTL( DataType ) for _ in range ( num_connect_outports ) ]
 
     # Ctrl
     s.recv_waddr = RecvIfcRTL( CtrlAddrType )
@@ -46,12 +47,16 @@ class TileRTL( Component ):
     s.to_mem_wdata   = SendIfcRTL( DataType )
 
     # Components
-    s.element  = FlexibleFuRTL( DataType, CtrlType, num_fu_inports,
-                                num_fu_outports, data_mem_size, FuList )
-    s.crossbar = CrossbarRTL( DataType, CtrlType, num_xbar_inports,
-                              num_xbar_outports )
+    s.element  = FlexibleFuRTL( DataType, PredicateType, CtrlType,
+                                num_fu_inports, num_fu_outports,
+                                data_mem_size, FuList )
+    s.crossbar = CrossbarRTL( DataType, PredicateType, CtrlType,
+                              num_xbar_inports, num_xbar_outports )
     s.ctrl_mem = CtrlMemRTL( CtrlType, ctrl_mem_size, num_ctrl )
     s.channel  = [ ChannelRTL( DataType ) for _ in range( num_xbar_outports ) ]
+
+    # Additional one register for partial predication
+    s.reg_predicate = RegisterRTL( PredicateType )
 
     # Connections
 
@@ -79,11 +84,16 @@ class TileRTL( Component ):
     for i in range( num_xbar_outports ):
       s.crossbar.send_data[i] //= s.channel[i].recv
 
+    # One partial predication register for flow control.
+    s.crossbar.send_predicate //= s.reg_predicate.recv
+    s.reg_predicate.send //= s.element.recv_predicate
+
     for i in range( num_connect_outports ):
       s.channel[i].send //= s.send_data[i]
 
     for i in range( num_fu_inports ):
       s.channel[num_connect_inports+i].send //= s.element.recv_in[i]
+      s.channel[num_connect_inports+i].count //= s.element.recv_in_count[i]
 
     for i in range( num_fu_outports ):
       s.element.send_out[i] //= s.crossbar.recv_data[num_connect_outports+i]

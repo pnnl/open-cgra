@@ -28,8 +28,8 @@ from ...mem.ctrl.CtrlMemCL                import CtrlMemCL
 
 class TestHarness( Component ):
 
-  def construct( s, DUT, FunctionUnit, FuList, DataType, CtrlType,
-                 ctrl_mem_size, data_mem_size,
+  def construct( s, DUT, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, ctrl_mem_size, data_mem_size,
                  num_tile_inports, num_tile_outports,
                  src_data, src_opt, src_const, sink_out ):
 
@@ -43,8 +43,9 @@ class TestHarness( Component ):
     s.sink_out  = [ TestSinkCL( DataType, sink_out[i] )
                   for i in range( num_tile_outports ) ]
 
-    s.dut = DUT( FunctionUnit, FuList, DataType, CtrlType, ctrl_mem_size,
-                 data_mem_size, len(src_opt), src_const, src_opt )
+    s.dut = DUT( FunctionUnit, FuList, DataType, PredicateType, CtrlType,
+                 ctrl_mem_size, data_mem_size, len(src_opt), src_const,
+                 src_opt )
 
     for i in range( num_tile_inports ):
       connect( s.src_data[i].send, s.dut.recv_data[i] )
@@ -97,36 +98,37 @@ def test_tile_alu():
   num_xbar_outports = 8
   ctrl_mem_size     = 8
   data_mem_size     = 8
-  # number of inputs of FU is fixed inside the tile
-  num_fu_in         = 4
-  RouteType    = mk_bits( clog2( num_xbar_inports + 1 ) )
-  AddrType     = mk_bits( clog2( ctrl_mem_size ) )
-  FuInType     = mk_bits( clog2( num_fu_in + 1 ) )
-  pickRegister = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
-  DUT          = TileCL
-  FunctionUnit = FlexibleFuRTL
-  FuList       = [AdderRTL, MemUnitRTL]
-  DataType     = mk_data( 16, 1 )
-  CtrlType     = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
-  src_opt      = [ CtrlType( OPT_NAH, pickRegister, [
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(0),
-                   RouteType(4), RouteType(3), RouteType(0), RouteType(0)] ),
-                   CtrlType( OPT_ADD, pickRegister, [
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(5),
-                   RouteType(4), RouteType(1), RouteType(0), RouteType(0)] ),
-                   CtrlType( OPT_SUB, pickRegister, [
-                   RouteType(5), RouteType(0), RouteType(0), RouteType(5),
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ) ]
-  src_data     = [ [DataType(2, 1)],# DataType( 3, 1)],
-                   [],#DataType(3, 1), DataType( 4, 1)],
-                   [DataType(4, 1)],# DataType( 5, 1)],
-                   [DataType(5, 1), DataType( 7, 1)] ]
-  src_const    = [ DataType(5, 1), DataType(0, 0), DataType(7, 1) ]
-  sink_out     = [ [DataType(5, 1, 0)],# DataType( 4, 1)],
-                   [],
-                   [],
-                   [DataType(9, 1, 0), DataType( 5, 1, 0)]]#, DataType(4, 1)] ]
-  th = TestHarness( DUT, FunctionUnit, FuList, DataType, CtrlType,
+  num_fu_in         = 4 # number of inputs of FU is fixed inside the tile
+  RouteType         = mk_bits( clog2( num_xbar_inports + 1 ) )
+  AddrType          = mk_bits( clog2( ctrl_mem_size ) )
+  FuInType          = mk_bits( clog2( num_fu_in + 1 ) )
+  pickRegister      = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
+  DUT               = TileCL
+  FunctionUnit      = FlexibleFuRTL
+  FuList            = [AdderRTL, MemUnitRTL]
+  DataType          = mk_data( 16, 1 )
+  PredicateType     = mk_predicate( 1, 1 )
+  CtrlType          = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
+  src_opt           = [ CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
+                        RouteType(0), RouteType(0), RouteType(0), RouteType(0),
+                        RouteType(4), RouteType(3), RouteType(0), RouteType(0)] ),
+                        CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
+                        RouteType(0), RouteType(0), RouteType(0), RouteType(5),
+                        RouteType(4), RouteType(1), RouteType(0), RouteType(0)] ),
+                        CtrlType( OPT_SUB, b1( 0 ), pickRegister, [
+                        RouteType(5), RouteType(0), RouteType(0), RouteType(5),
+                        RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ) ]
+  src_data          = [ [DataType(2, 1)],# DataType( 3, 1)],
+                        [],#DataType(3, 1), DataType( 4, 1)],
+                        [DataType(4, 1)],# DataType( 5, 1)],
+                        [DataType(5, 1), DataType( 7, 1)] ]
+  src_const         = [ DataType(5, 1), DataType(0, 0), DataType(7, 1) ]
+  sink_out          = [ [DataType(5, 1, 0)],# DataType( 4, 1)],
+                        [],
+                        [],
+                        [DataType(9, 1, 0), DataType( 5, 1, 0)]]#, DataType(4, 1)] ]
+  th = TestHarness( DUT, FunctionUnit, FuList, DataType,
+                    PredicateType, CtrlType,
                     ctrl_mem_size, data_mem_size,
                     num_tile_inports, num_tile_outports,
                     src_data, src_opt, src_const, sink_out )

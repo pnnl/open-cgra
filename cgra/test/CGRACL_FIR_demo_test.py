@@ -39,76 +39,69 @@ import os
 
 class TestHarness( Component ):
 
-  def construct( s, DUT, FunctionUnit, FuList, DataType, CtrlType,
-                 width, height, ctrl_mem_size, data_mem_size,
+  def construct( s, DUT, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, width, height, ctrl_mem_size, data_mem_size,
                  src_opt, preload_data, preload_const ):
 
     s.num_tiles = width * height
     AddrType = mk_bits( clog2( ctrl_mem_size ) )
 
-    s.dut = DUT( FunctionUnit, FuList, DataType, CtrlType, width, height,
-                 ctrl_mem_size, data_mem_size, 100, src_opt,
+    s.dut = DUT( FunctionUnit, FuList, DataType, PredicateType, CtrlType,
+                 width, height, ctrl_mem_size, data_mem_size, 100, src_opt,
                  preload_data, preload_const )
+    s.DataType = DataType
 
   def line_trace( s ):
     return s.dut.line_trace()
 
   def output_target_value( s ):
-    NORTH = 0
-    SOUTH = 1
-    WEST  = 2
-    EAST  = 3
-    return s.dut.tile[11].element.send_out[1].msg
+    res = s.DataType(0, 1)
+    res.payload = s.dut.tile[9].element.send_out[0].msg.payload
+    return res.payload
 
 
-def run_sim( test_harness, max_cycles=19 ):
+def run_sim( test_harness, max_cycles=18 ):
   test_harness.elaborate()
   test_harness.apply( SimulationPass() )
   test_harness.sim_reset()
 
   # Run simulation
-  target_value = []
   ncycles = 0
   print()
   print( "{}:{}".format( ncycles, test_harness.line_trace() ))
   while ncycles < max_cycles:
     test_harness.tick()
-    target_value.append(test_harness.output_target_value())
     ncycles += 1
     print( "{}:{}".format( ncycles, test_harness.line_trace() ))
 
-  # Check timeout
-#  assert ncycles < max_cycles
-
-#  print( '=' * 70 )
-#  print( test_harness.dut.data_mem.sram )
+  target_value = test_harness.output_target_value()
 
   test_harness.tick()
   test_harness.tick()
   test_harness.tick()
 
   print( '=' * 70 )
-  print(target_value)
-  res = None
-  for x in target_value:
-    if x.predicate == b1( 1 ):
-      res = x
-      return res
+  print( "----------------- CL test ------------------" )
+  print("CGRA CL model final result:", target_value)
+  print("=================================================================")
+  print("···························· split ······························")
+  print("=================================================================")
+  return target_value
 
 def run_CGRAFL():
   target_json = "dfg_fir.json"
   script_dir  = os.path.dirname(__file__)
   file_path   = os.path.join( script_dir, target_json )
-  DataType = mk_data( 16, 1 )
-  CtrlType = mk_ctrl()
-  const_data = [ DataType( 0, 1  ),
-                 DataType( 0, 1  ),
-                 DataType( 1, 1  ),
-                 DataType( 0, 1  ),
-                 DataType( 1, 1  ),
-                 DataType( 2, 1 ) ]
-  data_spm = [ 3 for _ in range(100) ]
-  fu_dfg = DFG( file_path, const_data, data_spm )
+  DataType    = mk_data( 16, 1 )
+  CtrlType    = mk_ctrl()
+  const_data  = [ DataType( 0, 1  ),
+                  DataType( 1, 1  ),
+                  DataType( 2, 1  ),
+                  DataType( 3, 1  ),
+                  DataType( 4, 1  ),
+                  DataType( 5, 1 ) ]
+  data_spm    = [ 5 for _ in range(100) ]
+  fu_dfg      = DFG( file_path, const_data, data_spm )
 
   print( "----------------- FL test ------------------" )
   # FL golden reference
@@ -124,7 +117,6 @@ def test_CGRA_4x4_fir():
   num_tile_outports = 4
   num_xbar_inports  = 6
   num_xbar_outports = 8
-  num_fu_in         = 4
   ctrl_mem_size     = 8
   width             = 4
   height            = 4
@@ -137,20 +129,46 @@ def test_CGRA_4x4_fir():
   num_fu_in         = 4
   DUT               = CGRACL
   FunctionUnit      = FlexibleFuRTL
-  FuList            = [ MemUnitRTL, AdderRTL, MulRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, LogicRTL ]
+  FuList            = [ AdderRTL, PhiRTL, MemUnitRTL, CompRTL, MulRTL, BranchRTL ]
   DataType          = mk_data( 16, 1 )
+  PredicateType     = mk_predicate( 1, 1 )
   CtrlType          = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
-  cgra_ctrl         = CGRACtrl( file_path, CtrlType, RouteType, width, height,
-                                num_fu_in, num_xbar_outports, II )
-  src_opt           = cgra_ctrl.get_ctrl()
-#  print( src_opt )
-  preload_data  = [ DataType( 3, 1 ) ] * data_mem_size
-  preload_const = [ [ DataType( 0, 1 ) for _ in range( II ) ] for _ in range( num_tiles ) ]
-  preload_const[6][2] = DataType( 1, 1 )
-  preload_const[6][3] = DataType( 2, 1 )
+  FuInType          = mk_bits( clog2( num_fu_in + 1 ) )
+  pickRegister      = [ FuInType( 0 ) for x in range( num_fu_in ) ]
 
-  th = TestHarness( DUT, FunctionUnit, FuList, DataType, CtrlType,
-                    width, height, ctrl_mem_size, data_mem_size,
+  cgra_ctrl         = CGRACtrl( file_path, CtrlType, RouteType, width, height,
+                                num_fu_in, num_xbar_inports, num_xbar_outports,
+                                II )
+  src_opt           = cgra_ctrl.get_ctrl()
+
+#  print(src_opt)
+
+  preload_data      = [ DataType( 5, 1 ) ] * data_mem_size
+  preload_const     = []
+  for _ in range( num_tiles ):
+    preload_const.append([])
+  preload_const[0].append( DataType( 0, 1) )
+  preload_const[1].append( DataType( 0, 1) )
+  preload_const[2].append( DataType( 0, 1) )
+  preload_const[3].append( DataType( 0, 1) )
+  preload_const[4].append( DataType( 0, 1) )
+  preload_const[5].append( DataType( 10, 1) )
+  preload_const[6].append( DataType( 0, 1) )
+  preload_const[6].append( DataType( 1, 1) )
+  preload_const[7].append( DataType( 0, 1) )
+  preload_const[8].append( DataType( 0, 1) )
+  preload_const[9].append( DataType( 0, 1) )
+  preload_const[10].append( DataType( 0, 1) )
+  preload_const[10].append( DataType( 3, 1) )
+  preload_const[11].append( DataType( 0, 1) )
+  preload_const[12].append( DataType( 0, 1) )
+  preload_const[13].append( DataType( 0, 1) )
+  preload_const[14].append( DataType( 0, 1) )
+  preload_const[15].append( DataType( 0, 1) )
+#  print(preload_const)
+
+  th = TestHarness( DUT, FunctionUnit, FuList, DataType, PredicateType,
+                    CtrlType, width, height, ctrl_mem_size, data_mem_size,
                     src_opt, preload_data, preload_const )
 
   target = run_sim( th )
@@ -158,6 +176,7 @@ def test_CGRA_4x4_fir():
   reference = run_CGRAFL()[0]
 
   assert(target == reference)
+
 #def test_CGRA():
 #
 #  # Attribute of CGRA

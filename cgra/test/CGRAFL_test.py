@@ -22,12 +22,12 @@ def test_fl():
   file_path   = os.path.join( script_dir, target_json )
   DataType = mk_data( 16, 1 )
   CtrlType = mk_ctrl()
-  const_data = [ DataType( 1, 1  ),
-                 DataType( 0, 1  ),
+  const_data = [ DataType( 0, 1  ),
                  DataType( 1, 1  ),
-                 DataType( 0, 1  ),
-                 DataType( 1, 1  ),
-                 DataType( 2, 1 ) ]
+                 DataType( 2, 1  ),
+                 DataType( 3, 1  ),
+                 DataType( 4, 1  ),
+                 DataType( 5, 1 ) ]
   data_spm = [ 3 for _ in range(100) ]
   fu_dfg = DFG( file_path, const_data, data_spm )
 

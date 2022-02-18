@@ -16,9 +16,10 @@ from pymtl3.stdlib.rtl  import RegisterFile
 
 class CtrlMemCL( Component ):
 
-  def construct( s, CtrlType, ctrl_mem_size, num_ctrl=4, opt_list=None ):
+  def construct( s, CtrlType, ctrl_mem_size, num_ctrl=4, opt_list=None, id=0 ):
 
     # Constant
+    s.id = id
     AddrType = mk_bits( clog2( ctrl_mem_size ) )
     TimeType = mk_bits( clog2( num_ctrl+1 ) )
 
@@ -42,6 +43,8 @@ class CtrlMemCL( Component ):
         s.send_ctrl.en = b1( 0 )
       else:
         s.send_ctrl.en  = s.send_ctrl.rdy
+      # if s.id == 6:
+      #   print("[update] tile[", s.id, "] check ctrl out: ", s.send_ctrl.msg, "; send_ctrl.en: ", s.send_ctrl.en, "; send_ctrl.rdy: ", s.send_ctrl.rdy, "; cur: ", s.cur, "; times: ", s.times)
 
     @s.update_ff
     def update_raddr():
@@ -52,6 +55,10 @@ class CtrlMemCL( Component ):
           s.cur <<= AddrType( 0 )
         else:
           s.cur <<= s.cur + AddrType( 1 )
+#      if s.id == 6 or s.id == 5:
+#        print("[update_ff] tile [", s.id, "] check ctrl out: ", s.send_ctrl.msg, "; send_ctrl.en: ", s.send_ctrl.en, "; send_ctrl.rdy: ", s.send_ctrl.rdy, "; cur: ", s.cur, "; times: ", s.times)
+
+
 
   def line_trace( s ):
     out_str  = "||".join([ str(data) for data in s.sram ])

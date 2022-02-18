@@ -38,8 +38,8 @@ from pymtl3.passes.backends.verilog       import TranslationImportPass
 
 class TestHarness( Component ):
 
-  def construct( s, DUT, FunctionUnit, FuList, DataType, CtrlType,
-                 ctrl_mem_size, data_mem_size,
+  def construct( s, DUT, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, ctrl_mem_size, data_mem_size,
                  num_fu_inports, num_fu_outports,
                  src_data, src_opt, opt_waddr, sink_out ):
 
@@ -55,9 +55,9 @@ class TestHarness( Component ):
     s.sink_out  = [ TestSinkCL( DataType, sink_out[i] )
                   for i in range( 4 ) ]
 
-    s.dut = DUT( DataType, CtrlType, ctrl_mem_size, data_mem_size,
-                 len(src_opt), num_fu_inports, num_fu_outports,
-                 4, 4, FunctionUnit, FuList )
+    s.dut = DUT( DataType, PredicateType, CtrlType, ctrl_mem_size,
+                 data_mem_size, len(src_opt), num_fu_inports,
+                 num_fu_outports, 4, 4, FunctionUnit, FuList )
 
     connect( s.src_opt.send,   s.dut.recv_wopt  )
     connect( s.opt_waddr.send, s.dut.recv_waddr )
@@ -116,65 +116,68 @@ import pytest
 def test_tile_alu():
   num_connect_inports  = 4
   num_connect_outports = 4
-  num_fu_inports    = 4
-  num_fu_outports   = 2
-  num_xbar_inports  = num_fu_outports + num_connect_inports
-  num_xbar_outports = num_fu_inports + num_connect_outports
-  ctrl_mem_size     = 3
-  data_mem_size     = 8
-  num_fu_in         = 4
-  RouteType    = mk_bits( clog2( num_xbar_inports + 1 ) )
-  AddrType     = mk_bits( clog2( ctrl_mem_size ) )
-  DUT          = TileRTL
-  FunctionUnit = FlexibleFuRTL
-  FuList       = [ AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL, SelRTL ]
-  DataType     = mk_data( 32, 1 )
-  CtrlType     = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
-  FuInType     = mk_bits( clog2( num_fu_in + 1 ) )
-  pickRegister = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
-  opt_waddr    = [ AddrType( 0 ), AddrType( 1 ), AddrType( 2 ) ]
+  num_fu_inports       = 4
+  num_fu_outports      = 2
+  num_xbar_inports     = num_fu_outports + num_connect_inports
+  num_xbar_outports    = num_fu_inports + num_connect_outports
+  ctrl_mem_size        = 3
+  data_mem_size        = 8
+  num_fu_in            = 4
+  RouteType     = mk_bits( clog2( num_xbar_inports + 1 ) )
+  AddrType      = mk_bits( clog2( ctrl_mem_size ) )
+  DUT           = TileRTL
+  FunctionUnit  = FlexibleFuRTL
+  FuList        = [ AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL, SelRTL ]#ThreeMulAdderShifterRTL ]
+#  FuList       = [AdderRTL]
+#  FuList      = [ThreeMulAdderShifterRTL]
+  DataType      = mk_data( 32, 1 )
+  PredicateType = mk_predicate( 1, 1 )
+  CtrlType      = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
+  FuInType      = mk_bits( clog2( num_fu_in + 1 ) )
+  pickRegister  = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
+  opt_waddr     = [ AddrType( 0 ), AddrType( 1 ), AddrType( 2 ) ]
 
-  src_opt      = [ CtrlType( OPT_NAH, pickRegister, [
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(0),
-                   RouteType(4), RouteType(3), RouteType(0), RouteType(0)] ),
-                   CtrlType( OPT_ADD, pickRegister, [
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(5),
-                   RouteType(4), RouteType(1), RouteType(0), RouteType(0)] ),
-                   CtrlType( OPT_SUB, pickRegister, [
-                   RouteType(5), RouteType(0), RouteType(0), RouteType(5),
-                   RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ) ]
-  src_data     = [ [DataType(2, 1)],# DataType( 3, 1)],
-                   [],#DataType(3, 1), DataType( 4, 1)],
-                   [DataType(4, 1)],# DataType( 5, 1)],
-                   [DataType(5, 1), DataType( 7, 1)] ]
-  src_const    = [ DataType(5, 1), DataType(0, 0), DataType(7, 1) ]
-  sink_out     = [ [DataType(5, 1)],# DataType( 4, 1)],
-                   [],
-                   [],
-                   [DataType(9, 1), DataType( 5, 1)]]
+  src_opt       = [ CtrlType( OPT_NAH, b1( 0 ), pickRegister, [
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0),
+                    RouteType(4), RouteType(3), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(5),
+                    RouteType(4), RouteType(1), RouteType(0), RouteType(0)] ),
+                    CtrlType( OPT_SUB, b1( 0 ), pickRegister, [
+                    RouteType(5), RouteType(0), RouteType(0), RouteType(5),
+                    RouteType(0), RouteType(0), RouteType(0), RouteType(0)] ) ]
+  src_data      = [ [DataType(2, 1)],# DataType( 3, 1)],
+                    [],#DataType(3, 1), DataType( 4, 1)],
+                    [DataType(4, 1)],# DataType( 5, 1)],
+                    [DataType(5, 1), DataType( 7, 1)] ]
+  src_const     = [ DataType(5, 1), DataType(0, 0), DataType(7, 1) ]
+  sink_out      = [ [DataType(5, 1)],# DataType( 4, 1)],
+                    [],
+                    [],
+                    [DataType(9, 1), DataType( 5, 1)]]
 
   """
-  src_opt      = [ CtrlType( OPT_NAH, [
-                   RouteType(4), RouteType(3), RouteType(2), RouteType(1),
-                   RouteType(4), RouteType(3), RouteType(2), RouteType(1)] ),
-                   CtrlType( OPT_ADD, [
-                   RouteType(3), RouteType(3), RouteType(3), RouteType(5),
-                   RouteType(4), RouteType(1), RouteType(1), RouteType(1)] ),
-                   CtrlType( OPT_SUB, [
-                   RouteType(5), RouteType(5), RouteType(2), RouteType(2),
-                   RouteType(1), RouteType(1), RouteType(1), RouteType(1)] ) ]
-  src_data     = [ [DataType(2, 1), DataType( 3, 1)],
-                   [DataType(3, 1), DataType( 4, 1)],
-                   [DataType(4, 1), DataType( 5, 1)],
-                   [DataType(5, 1), DataType( 6, 1)] ]
-  sink_out     = [ [DataType(5, 1), DataType( 5, 1), DataType( 3, 1)],
-                   [DataType(4, 1), DataType( 5, 1), DataType( 3, 1)],
-                   [DataType(3, 1), DataType( 5, 1)],
-                   [DataType(2, 1), DataType( 9, 1)] ]
+  src_opt       = [ CtrlType( OPT_NAH, [
+                    RouteType(4), RouteType(3), RouteType(2), RouteType(1),
+                    RouteType(4), RouteType(3), RouteType(2), RouteType(1)] ),
+                    CtrlType( OPT_ADD, [
+                    RouteType(3), RouteType(3), RouteType(3), RouteType(5),
+                    RouteType(4), RouteType(1), RouteType(1), RouteType(1)] ),
+                    CtrlType( OPT_SUB, [
+                    RouteType(5), RouteType(5), RouteType(2), RouteType(2),
+                    RouteType(1), RouteType(1), RouteType(1), RouteType(1)] ) ]
+  src_data      = [ [DataType(2, 1), DataType( 3, 1)],
+                    [DataType(3, 1), DataType( 4, 1)],
+                    [DataType(4, 1), DataType( 5, 1)],
+                    [DataType(5, 1), DataType( 6, 1)] ]
+  sink_out      = [ [DataType(5, 1), DataType( 5, 1), DataType( 3, 1)],
+                    [DataType(4, 1), DataType( 5, 1), DataType( 3, 1)],
+                    [DataType(3, 1), DataType( 5, 1)],
+                    [DataType(2, 1), DataType( 9, 1)] ]
   """
-  th = TestHarness( DUT, FunctionUnit, FuList, DataType, CtrlType,
-                    ctrl_mem_size, data_mem_size,
-                    num_fu_inports, num_fu_outports,
-                    src_data, src_opt, opt_waddr, sink_out )
+  th = TestHarness( DUT, FunctionUnit, FuList, DataType, PredicateType,
+                    CtrlType, ctrl_mem_size, data_mem_size,
+                    num_fu_inports, num_fu_outports, src_data,
+                    src_opt, opt_waddr, sink_out )
   run_sim( th )
 

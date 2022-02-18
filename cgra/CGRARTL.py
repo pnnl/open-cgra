@@ -20,9 +20,9 @@ from ..fu.flexible.FlexibleFuRTL import FlexibleFuRTL
 
 class CGRARTL( Component ):
 
-  def construct( s, DataType, CtrlType, width, height,
-                 ctrl_mem_size, data_mem_size,
-                 num_ctrl, FunctionUnit, FuList ):
+  def construct( s, DataType, PredicateType, CtrlType, width, height,
+                 ctrl_mem_size, data_mem_size, num_ctrl, FunctionUnit,
+                 FuList ):
 
     # Constant
     NORTH = 0
@@ -38,9 +38,11 @@ class CGRARTL( Component ):
     s.recv_wopt  = [ RecvIfcRTL( CtrlType )  for _ in range( s.num_tiles ) ]
 
     # Components
-    s.tile = [ TileRTL( DataType, CtrlType, ctrl_mem_size, data_mem_size,
-               num_ctrl, 4, 2, s.num_mesh_ports, s.num_mesh_ports )
-               for _ in range( s.num_tiles ) ]
+    s.tile = [ TileRTL( DataType, PredicateType, CtrlType,
+                        ctrl_mem_size, data_mem_size,
+                        num_ctrl, 4, 2, s.num_mesh_ports,
+                        s.num_mesh_ports )
+                        for _ in range( s.num_tiles ) ]
     s.data_mem = DataMemRTL( DataType, data_mem_size, height, height )
 
     # Connections

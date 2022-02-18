@@ -18,11 +18,13 @@ from ..single.ShifterRTL import ShifterRTL
 
 class SeqMulShifterRTL( TwoSeqCombo ):
 
-  def construct( s, DataType, CtrlType, num_inports, num_outports,
-                 data_mem_size ):
+  def construct( s, DataType, PredicateType, CtrlType,
+                 num_inports, num_outports, data_mem_size ):
 
-    super( SeqMulShifterRTL, s ).construct( DataType, CtrlType, MulRTL, ShifterRTL,
-           num_inports, num_outports, data_mem_size )
+    super( SeqMulShifterRTL, s ).construct( DataType, PredicateType,
+                                            CtrlType, MulRTL, ShifterRTL,
+                                            num_inports, num_outports,
+                                            data_mem_size )
 
     @s.update
     def update_opt():

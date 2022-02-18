@@ -25,7 +25,7 @@ from ...fu.single.ShifterRTL        import ShifterRTL
 from ...fu.single.LogicRTL          import LogicRTL
 from ...fu.single.PhiRTL            import PhiRTL
 from ...fu.single.CompRTL           import CompRTL
-from ...fu.double.SeqMulAdderRTL    import SeqMulAdderRTL 
+from ...fu.double.SeqMulAdderRTL    import SeqMulAdderRTL
 from ...fu.single.BranchRTL         import BranchRTL
 from ..CGRARTL                      import CGRARTL
 
@@ -37,8 +37,8 @@ from pymtl3.passes.backends.verilog import TranslationImportPass
 
 class TestHarness( Component ):
 
-  def construct( s, DUT, FunctionUnit, FuList, DataType, CtrlType,
-                 width, height, ctrl_mem_size, data_mem_size,
+  def construct( s, DUT, FunctionUnit, FuList, DataType, PredicateType,
+                 CtrlType, width, height, ctrl_mem_size, data_mem_size,
                  src_opt, ctrl_waddr):
 
     s.num_tiles = width * height
@@ -49,7 +49,7 @@ class TestHarness( Component ):
     s.ctrl_waddr  = [ TestSrcRTL( AddrType, ctrl_waddr[i] )
                       for i in range( s.num_tiles ) ]
 
-    s.dut = DUT( DataType, CtrlType, width, height,
+    s.dut = DUT( DataType, PredicateType, CtrlType, width, height,
                  ctrl_mem_size, data_mem_size, len( src_opt[0] ),
                  FunctionUnit, FuList, )
 
@@ -103,44 +103,46 @@ def test_cgra_universal():
   num_xbar_inports  = 6
   num_xbar_outports = 8
   ctrl_mem_size     = 6
-  width  = 2
-  height = 2
-  RouteType = mk_bits( clog2( num_xbar_inports + 1 ) )
-  AddrType = mk_bits( clog2( ctrl_mem_size ) )
-  num_tiles    = width * height
-  data_mem_size = 8
-  num_fu_in     = 4
-  DUT          = CGRARTL
-  FunctionUnit = FlexibleFuRTL
-  # FuList       = [ AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL ]
-  FuList       = [ SeqMulAdderRTL, MemUnitRTL ]
-  DataType     = mk_data( 32, 1 )
-  CtrlType     = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
-  FuInType      = mk_bits( clog2( num_fu_in + 1 ) )
-  pickRegister  = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
-  src_opt      = [ [ CtrlType( OPT_INC, pickRegister, [
-                     RouteType(4), RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
-                     CtrlType( OPT_INC, pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
-                     CtrlType( OPT_ADD, pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
-                     CtrlType( OPT_STR, pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
-                     CtrlType( OPT_ADD, pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
-                     CtrlType( OPT_ADD, pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
-                     RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ) ]
-                     for _ in range( num_tiles ) ]
+  width             = 2
+  height            = 2
+  RouteType         = mk_bits( clog2( num_xbar_inports + 1 ) )
+  AddrType          = mk_bits( clog2( ctrl_mem_size ) )
+  num_tiles         = width * height
+  data_mem_size     = 8
+  num_fu_in         = 4
+  DUT               = CGRARTL
+  FunctionUnit      = FlexibleFuRTL
+  FuList            = [ SeqMulAdderRTL, MemUnitRTL ]#AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL ]
+  DataType          = mk_data( 32, 1 )
+  PredicateType     = mk_predicate( 1, 1 )
+#  FuList           = [ SeqMulAdderRTL, AdderRTL, MulRTL, LogicRTL, ShifterRTL, PhiRTL, CompRTL, BranchRTL, MemUnitRTL ]
+#  DataType         = mk_data( 16, 1 )
+  CtrlType          = mk_ctrl( num_fu_in, num_xbar_inports, num_xbar_outports )
+  FuInType          = mk_bits( clog2( num_fu_in + 1 ) )
+  pickRegister      = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
+  src_opt           = [ [ CtrlType( OPT_INC, b1( 0 ), pickRegister, [
+                          RouteType(4), RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
+                          CtrlType( OPT_INC, b1( 0 ), pickRegister, [
+                          RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
+                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
+                          RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
+                          CtrlType( OPT_STR, b1( 0 ), pickRegister, [
+                          RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
+                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
+                          RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
+                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
+                          RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ) ]
+                          for _ in range( num_tiles ) ]
   ctrl_waddr   = [ [ AddrType( 0 ), AddrType( 1 ), AddrType( 2 ), AddrType( 3 ),
                      AddrType( 4 ), AddrType( 5 ) ] for _ in range( num_tiles ) ]
-  th = TestHarness( DUT, FunctionUnit, FuList, DataType, CtrlType,
-                    width, height, ctrl_mem_size, data_mem_size,
+  th = TestHarness( DUT, FunctionUnit, FuList, DataType, PredicateType,
+                    CtrlType, width, height, ctrl_mem_size, data_mem_size,
                     src_opt, ctrl_waddr )
   run_sim( th )
 

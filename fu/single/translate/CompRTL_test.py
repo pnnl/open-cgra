@@ -26,21 +26,27 @@ from pymtl3.passes.PassGroups       import *
 
 class TestHarness( Component ):
 
-  def construct( s, FunctionUnit, DataType, CtrlType, num_inports, num_outports,
-                 data_mem_size, src_data, src_ref, src_opt, sink_msgs ):
+  def construct( s, FunctionUnit, DataType, PredicateType, CtrlType,
+                 num_inports, num_outports, data_mem_size,
+                 src_data, src_ref, src_predicate, src_opt, sink_msgs ):
 
-    s.src_data = TestSrcRTL( DataType, src_data  )
-    s.src_ref  = TestSrcRTL( DataType, src_ref   )
-    s.src_opt  = TestSrcRTL( CtrlType, src_opt   )
-    s.sink_out = TestSinkCL( DataType, sink_msgs )
+    s.src_data      = TestSrcRTL( DataType,      src_data      )
+    s.src_ref       = TestSrcRTL( DataType,      src_ref       )
+    s.src_predicate = TestSrcRTL( PredicateType, src_predicate )
+    s.src_opt       = TestSrcRTL( CtrlType,      src_opt       )
+    s.sink_out      = TestSinkCL( DataType,      sink_msgs     )
 
-    s.dut = FunctionUnit( DataType, CtrlType, num_inports, num_outports,
-                          data_mem_size )
+    s.dut = FunctionUnit( DataType, PredicateType, CtrlType,
+                          num_inports, num_outports, data_mem_size )
 
-    connect( s.src_data.send, s.dut.recv_in[0]  )
-    connect( s.src_ref.send,  s.dut.recv_in[1]  )
-    connect( s.src_opt.send,  s.dut.recv_opt    )
-    connect( s.dut.send_out[0], s.sink_out.recv )
+    for i in range( num_inports ):
+      s.dut.recv_in_count[i] //= 1
+
+    connect( s.src_data.send,      s.dut.recv_in[0]     )
+    connect( s.src_ref.send,       s.dut.recv_in[1]     )
+    connect( s.src_predicate.send, s.dut.recv_predicate )
+    connect( s.src_opt.send,       s.dut.recv_opt       )
+    connect( s.dut.send_out[0],    s.sink_out.recv      )
 
   def done( s ):
     return s.src_data.done() and s.sink_out.done()
@@ -80,21 +86,24 @@ import pytest
 @pytest.mark.skipif('Linux' not in platform.platform(),
                     reason="requires linux (gcc)")
 def test_Comp():
-  FU = CompRTL
-  DataType   = mk_data( 32, 1 )
-  CtrlType = mk_ctrl()
+  FU            = CompRTL
+  DataType      = mk_data( 32, 1 )
+  PredicateType = mk_predicate( 1, 1 )
+  CtrlType      = mk_ctrl()
   num_inports   = 2
   num_outports  = 2
   data_mem_size = 8
-  FuInType = mk_bits( clog2( num_inports + 1 ) )
-  pickRegister = [ FuInType( x+1 ) for x in range( num_inports ) ]
-  src_data   = [ DataType(9, 1), DataType(3, 1), DataType(3, 1) ]
-  src_ref    = [ DataType(9, 1), DataType(5, 1), DataType(2, 1) ]
-  src_opt    = [ CtrlType( OPT_EQ, pickRegister ),
-                 CtrlType( OPT_LE, pickRegister ),
-                 CtrlType( OPT_EQ, pickRegister ) ]
-  sink_out   = [ DataType(1, 1), DataType(1, 1), DataType(0, 1) ]
-  th = TestHarness( FU, DataType, CtrlType, num_inports, num_outports,
-                    data_mem_size, src_data, src_ref, src_opt, sink_out )
+  FuInType      = mk_bits( clog2( num_inports + 1 ) )
+  pickRegister  = [ FuInType( x+1 ) for x in range( num_inports ) ]
+  src_data      = [ DataType(9, 1), DataType(3, 1), DataType(3, 1) ]
+  src_ref       = [ DataType(9, 1), DataType(5, 1), DataType(2, 1) ]
+  src_predicate = [ PredicateType(1, 0), PredicateType(1, 0), PredicateType(1, 1) ]
+  src_opt       = [ CtrlType( OPT_EQ, b1( 0 ), pickRegister ),
+                    CtrlType( OPT_LE, b1( 0 ), pickRegister ),
+                    CtrlType( OPT_EQ, b1( 0 ), pickRegister ) ]
+  sink_out      = [ DataType(1, 1), DataType(1, 1), DataType(0, 1) ]
+  th = TestHarness( FU, DataType, PredicateType, CtrlType,
+                    num_inports, num_outports, data_mem_size,
+                    src_data, src_ref, src_predicate, src_opt, sink_out )
   run_sim( th )
 

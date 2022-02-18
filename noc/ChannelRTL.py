@@ -19,6 +19,7 @@ class ChannelRTL( Component ):
     s.latency     = latency
     s.num_entries = 2
     s.data = DataType(0, 0)
+    s.count = OutPort( mk_bits( clog2( s.num_entries+1 ) ) )
 
     # Interface
     s.recv  = RecvIfcRTL( DataType )
@@ -28,6 +29,8 @@ class ChannelRTL( Component ):
     # Component
     s.queues = [ NormalQueueRTL( DataType, s.num_entries )
                  for _ in range( s.latency ) ]
+
+    s.count //= s.queues[s.latency - 1].count
 
     @s.update
     def process():
@@ -55,5 +58,5 @@ class ChannelRTL( Component ):
     trace = '>'
     for i in range( s.latency ):
       trace += s.queues[i].line_trace() + '>'
-    return f"{s.recv.msg}({trace}){s.send.msg} ## "
+    return f"in:{s.recv.msg}({trace})out:{s.send.msg}.count:{s.count} ## "
 
