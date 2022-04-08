@@ -33,6 +33,9 @@ class RetRTL( Fu ):
       in0 = FuInType( 0 )
       for i in range( num_inports ):
         s.recv_in[i].rdy = b1( 0 )
+
+      s.recv_predicate.rdy = b1( 0 )
+
       if s.recv_opt.en:
         if s.recv_opt.msg.fu_in[0] != FuInType( 0 ):
           in0 = s.recv_opt.msg.fu_in[0] - FuInType( 1 )

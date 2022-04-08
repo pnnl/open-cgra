@@ -86,7 +86,7 @@ def test_Ret():
   src_opt       = [ CtrlType( OPT_RET, b1( 1 ), [FuInType(1), FuInType(0)] ),
                     CtrlType( OPT_RET, b1( 0 ), [FuInType(1), FuInType(0)] ),
                     CtrlType( OPT_RET, b1( 1 ), [FuInType(1), FuInType(0)] ) ]
-  sink          = [ DataType(1, 0), DataType(2, 1), DataType(3, 1) ]
+  sink          = [ DataType(1, 0), DataType(2, 1), DataType(3, 0) ]
   th = TestHarness( FU, DataType, PredicateType, CtrlType,
                     num_inports, num_outports, data_mem_size,
                     src_in, src_predicate, src_opt, sink )

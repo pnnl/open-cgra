@@ -98,8 +98,8 @@ def test_mul_alu():
   src_in2       = [ DataType(1, 1), DataType(3, 1), DataType(3, 1)  ]
   src_in3       = [ DataType(1, 1), DataType(2, 1), DataType(3, 1)  ]
   src_predicate = [ PredicateType(1, 0), PredicateType(1, 0), PredicateType(1, 1 ) ]
-  sink_out0     = [ DataType(2, 0), DataType(6, 1), DataType(12,1) ]
-  sink_out1     = [ DataType(2, 0), DataType(5, 1), DataType(0, 1)  ]
+  sink_out0     = [ DataType(2, 0), DataType(6, 1), DataType(12,0) ]
+  sink_out1     = [ DataType(2, 0), DataType(5, 1), DataType(0, 0)  ]
   src_opt       = [ CtrlType( OPT_MUL_ADD, b1( 1 ), pickRegister ),
                     CtrlType( OPT_MUL_ADD, b1( 0 ), pickRegister ),
                     CtrlType( OPT_MUL_SUB, b1( 1 ), pickRegister ) ]
