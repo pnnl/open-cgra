@@ -34,7 +34,7 @@ OpenCGRA is offered under the terms of the Open Source Initiative BSD 3-Clause L
 Installation
 --------------------------------------------------------
 
-OpenCGRA requires Python3.7 and has the following additional prerequisites:
+OpenCGRA requires Python3.7 (note that <2.x and >3.7 do not work for now) and has the following additional prerequisites:
 
  - graphviz, verilator
  - git, Python headers, and libffi
@@ -43,7 +43,7 @@ OpenCGRA requires Python3.7 and has the following additional prerequisites:
 
 The steps for installing these prerequisites and OpenCGRA on a fresh Ubuntu
 distribution are shown below. They have been tested with Ubuntu Trusty
-14.04.
+14.04 ~ 20.04.
 
 ### Install python3
 
