@@ -81,10 +81,10 @@ def run_sim( test_harness, max_cycles=100 ):
   test_harness.tick()
 
 def test_homo_2x2():
-  num_tile_inports  = 4
-  num_tile_outports = 4
-  num_xbar_inports  = 6
-  num_xbar_outports = 8
+  num_tile_inports  = 5
+  num_tile_outports = 5
+  num_xbar_inports  = 7
+  num_xbar_outports = 9
   ctrl_mem_size     = 6
   width         = 2
   height        = 2
@@ -102,22 +102,22 @@ def test_homo_2x2():
   FuInType      = mk_bits( clog2( num_fu_in + 1 ) )
   pickRegister  = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
   src_opt       = [[ CtrlType( OPT_INC, b1( 0 ), pickRegister, [
-                     RouteType(4), RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4), RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                      CtrlType( OPT_INC, b1( 0 ), pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                      CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                      CtrlType( OPT_STR, b1( 0 ), pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                      CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                      CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                     RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                     RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                      RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ) ]
                      for _ in range( num_tiles ) ]
   ctrl_waddr   = [[ AddrType( 0 ), AddrType( 1 ), AddrType( 2 ), AddrType( 3 ),
@@ -130,8 +130,8 @@ def test_homo_2x2():
 def test_hetero_2x2():
   num_tile_inports  = 4
   num_tile_outports = 4
-  num_xbar_inports  = 6
-  num_xbar_outports = 8
+  num_xbar_inports  = 7
+  num_xbar_outports = 9
   ctrl_mem_size     = 6
   width             = 2
   height            = 2
@@ -149,22 +149,22 @@ def test_hetero_2x2():
   FuInType          = mk_bits( clog2( num_fu_in + 1 ) )
   pickRegister      = [ FuInType( x+1 ) for x in range( num_fu_in ) ]
   src_opt           = [[ CtrlType( OPT_INC, b1( 0 ), pickRegister, [
-                         RouteType(4), RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4), RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                          CtrlType( OPT_INC, b1( 0 ), pickRegister, [
-                         RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                         RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                          CtrlType( OPT_STR, b1( 0 ), pickRegister, [
-                         RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                         RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ),
                          CtrlType( OPT_ADD, b1( 0 ), pickRegister, [
-                         RouteType(4),RouteType(3), RouteType(2), RouteType(1),
+                         RouteType(4),RouteType(3), RouteType(2), RouteType(1), RouteType(0),
                          RouteType(5), RouteType(5), RouteType(5), RouteType(5)] ) ]
                          for _ in range( num_tiles ) ]
   ctrl_waddr        = [[ AddrType( 0 ), AddrType( 1 ), AddrType( 2 ), AddrType( 3 ),

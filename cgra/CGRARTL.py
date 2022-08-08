@@ -29,8 +29,9 @@ class CGRARTL( Component ):
     SOUTH = 1
     WEST  = 2
     EAST  = 3
+    ADDITION = 4
     s.num_tiles = width * height
-    s.num_mesh_ports = 4
+    s.num_mesh_ports = 5
     AddrType = mk_bits( clog2( ctrl_mem_size ) )
 
     # Interfaces
@@ -93,6 +94,11 @@ class CGRARTL( Component ):
         s.tile[i].from_mem_rdata.msg //= DataType(0, 0)
         s.tile[i].to_mem_waddr.rdy //= 0
         s.tile[i].to_mem_wdata.rdy //= 0
+
+    s.tile[0].send_data[ADDITION] //= s.tile[3].recv_data[ADDITION]
+    s.tile[3].send_data[ADDITION] //= s.tile[0].recv_data[ADDITION]
+    s.tile[1].send_data[ADDITION] //= s.tile[2].recv_data[ADDITION]
+    s.tile[2].send_data[ADDITION] //= s.tile[1].recv_data[ADDITION]
 
   # Line trace
   def line_trace( s ):
