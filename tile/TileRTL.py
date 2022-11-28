@@ -13,9 +13,14 @@ from ..noc.CrossbarRTL           import CrossbarRTL
 from ..noc.ChannelRTL            import ChannelRTL
 from ..rf.RegisterRTL            import RegisterRTL
 from ..mem.ctrl.CtrlMemRTL       import CtrlMemRTL
-from ..fu.flexible.FlexibleFuRTL import FlexibleFuRTL
 from ..fu.single.MemUnitRTL      import MemUnitRTL
+from ..fu.flexible.FlexibleFuRTL import FlexibleFuRTL
+from ..mem.const.ConstQueueRTL   import ConstQueueRTL
 from ..fu.single.AdderRTL        import AdderRTL
+from ..fu.single.PhiRTL          import PhiRTL
+from ..fu.single.CompRTL         import CompRTL
+from ..fu.single.MulRTL          import MulRTL
+from ..fu.single.BranchRTL       import BranchRTL
 
 class TileRTL( Component ):
 
@@ -23,7 +28,9 @@ class TileRTL( Component ):
                  ctrl_mem_size, data_mem_size, num_ctrl,
                  num_fu_inports, num_fu_outports,
                  num_connect_inports, num_connect_outports,
-                 Fu=FlexibleFuRTL, FuList=[MemUnitRTL,AdderRTL] ):
+                 Fu=FlexibleFuRTL,
+                 FuList=[MemUnitRTL,AdderRTL,PhiRTL,CompRTL,MulRTL,BranchRTL],
+                 const_list = None ):
 
     # Constant
     num_xbar_inports  = num_fu_outports + num_connect_inports
@@ -50,6 +57,7 @@ class TileRTL( Component ):
     s.element  = FlexibleFuRTL( DataType, PredicateType, CtrlType,
                                 num_fu_inports, num_fu_outports,
                                 data_mem_size, FuList )
+    s.const_queue = ConstQueueRTL( DataType, const_list if const_list != None else [DataType(0)])
     s.crossbar = CrossbarRTL( DataType, PredicateType, CtrlType,
                               num_xbar_inports, num_xbar_outports )
     s.ctrl_mem = CtrlMemRTL( CtrlType, ctrl_mem_size, num_ctrl )
@@ -63,7 +71,11 @@ class TileRTL( Component ):
     # Ctrl
     s.ctrl_mem.recv_waddr //= s.recv_waddr
     s.ctrl_mem.recv_ctrl  //= s.recv_wopt
+
     # Data
+
+    s.element.recv_const //= s.const_queue.send_const
+
     for i in range( len( FuList ) ):
       if FuList[i] == MemUnitRTL:
         s.to_mem_raddr   //= s.element.to_mem_raddr[i]

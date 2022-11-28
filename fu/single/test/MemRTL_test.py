@@ -59,7 +59,7 @@ class TestHarness( Component ):
            s.src_opt.done() and s.sink_out.done()
 
   def line_trace( s ):
-    return s.dut.line_trace()
+    return s.dut.line_trace() + s.data_mem.line_trace()
 
 def run_sim( test_harness, max_cycles=100 ):
   test_harness.elaborate()
